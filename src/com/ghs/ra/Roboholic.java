@@ -98,7 +98,7 @@ public class Roboholic extends SimpleRobot {
                 }
                 else {
                     speedLeft = (jsLeftX-(Math.abs(jsLeftX)/
-                            jsLeftX*DEADBAND)/(1-DEADBAND));
+                            jsLeftX*DEADBAND)/(1-DEADBAND))*at3Left.getThrottle();
                 }
    // second JS         
             jsRightX = (at3Right.getY());
@@ -107,7 +107,7 @@ public class Roboholic extends SimpleRobot {
                 }
                 else {
                     speedRight = (jsRightX-(Math.abs(jsRightX)/
-                            jsRightX*DEADBAND)/(1-DEADBAND));
+                            jsRightX*DEADBAND)/(1-DEADBAND))*at3Right.getThrottle();
                 }
             
             tankDrive.tankDrive(speedLeft, speedRight);
