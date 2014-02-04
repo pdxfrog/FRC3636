@@ -8,10 +8,13 @@
 package com.ghs.ra;
 
 
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SimpleRobot;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.buttons.Button;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 /**
@@ -59,13 +62,22 @@ public class Roboholic extends SimpleRobot {
          * This allow the update of variables without a reboot!
          */
         NetworkTable variTable;
+        
+        /**
+         * Pneumatics:
+         */
+        Compressor compressor = new Compressor(1,1);
+        Solenoid pistonIn = new Solenoid(1,1);
+        Solenoid pistonOut = new Solenoid(1,2);
+        
+       
     
     /**
      * This function is called once each time the robot turns on.
      */
     public void robotInit(){
 
-        
+        compressor.start();
         // This instantiates the NetworkTable, or returns a referance to the existing one.
         variTable = NetworkTable.getTable("variables");
     }
@@ -88,6 +100,7 @@ public class Roboholic extends SimpleRobot {
         // If a motor runs backward, toggle its boolean value
         tankDrive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, invertRight); 
         tankDrive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, invertLeft);   
+        
     
         while (isOperatorControl()){
             getWatchdog().feed();
@@ -98,7 +111,7 @@ public class Roboholic extends SimpleRobot {
                 }
                 else {
                     speedLeft = (jsLeftX-(Math.abs(jsLeftX)/
-                            jsLeftX*DEADBAND)/(1-DEADBAND))*at3Left.getThrottle();
+                            jsLeftX*DEADBAND)/(1-DEADBAND));
                 }
    // second JS         
             jsRightX = (at3Right.getY());
@@ -107,11 +120,16 @@ public class Roboholic extends SimpleRobot {
                 }
                 else {
                     speedRight = (jsRightX-(Math.abs(jsRightX)/
-                            jsRightX*DEADBAND)/(1-DEADBAND))*at3Right.getThrottle();
+                            jsRightX*DEADBAND)/(1-DEADBAND));
                 }
             
             tankDrive.tankDrive(speedLeft, speedRight);
+            pistonIn.set(at3Left.getTrigger());
+            pistonOut.set(!at3Left.getTrigger()); 
         }
+        
+       
+        
     }
     
     /**
