@@ -9,6 +9,7 @@ package com.ghs.ra;
 
 
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.Dashboard;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SimpleRobot;
@@ -16,6 +17,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.buttons.Button;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -57,11 +59,15 @@ public class Roboholic extends SimpleRobot {
         double speedRight;
         double jsLeftX;
         double jsRightX;
+        double jsLeftCal;
+        double jsRightCal;
         
         /**
          * This allow the update of variables without a reboot!
          */
         NetworkTable variTable;
+        Dashboard dashboard;
+        SmartDashboard sDB;
         
         /**
          * Pneumatics:
@@ -69,6 +75,10 @@ public class Roboholic extends SimpleRobot {
         Compressor compressor = new Compressor(1,1);
         Solenoid pistonIn = new Solenoid(1,1);
         Solenoid pistonOut = new Solenoid(1,2);
+        
+        Solenoid shootersolenoid = new Solenoid(1,3);
+        
+        boolean pistonState;
         
        
     
@@ -80,6 +90,10 @@ public class Roboholic extends SimpleRobot {
         compressor.start();
         // This instantiates the NetworkTable, or returns a referance to the existing one.
         variTable = NetworkTable.getTable("variables");
+        
+        dashboard.addDouble(jsLeftCal);
+        dashboard.addDouble(jsRightCal);
+        
     }
     
     /**
@@ -87,8 +101,16 @@ public class Roboholic extends SimpleRobot {
      */
     public void autonomous() {
         
+     for (int i = 0; i < 4; i++);
     }
-
+    /**   
+    {  tankDrive.tankDrive(0.5,0.0);
+        Timer.delay(2.0);
+    }
+    {
+        tankDrive.tankDrive(0.0,0.0);
+    }
+    **/
     /**
      * This function is called once each time the robot enters operator control.
      */
@@ -124,8 +146,17 @@ public class Roboholic extends SimpleRobot {
                 }
             
             tankDrive.tankDrive(speedLeft, speedRight);
-            pistonIn.set(at3Left.getTrigger());
-            pistonOut.set(!at3Left.getTrigger()); 
+            if (at3Left.getTwist()==1){
+                pistonState = true;
+            }
+            if (at3Left.getTwist()==(-1)) {
+                pistonState = false;
+            }
+            pistonIn.set(pistonState);
+            pistonOut.set(!pistonState);
+            //pistonIn.set(at3Left.getTrigger());
+            //pistonOut.set(!at3Left.getTrigger()); 
+            shootersolenoid.set(at3Right.getTrigger());
         }
         
        
@@ -135,6 +166,7 @@ public class Roboholic extends SimpleRobot {
     /**
      * This function is called once each time the robot enters test mode.
      */
+    
     public void test() {
     
     }
