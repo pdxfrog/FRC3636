@@ -66,9 +66,8 @@ public class Roboholic extends SimpleRobot {
          * This allow the update of variables without a reboot!
          */
         NetworkTable variTable;
-        Dashboard dashboard;
-        SmartDashboard sDB;
         
+       
         /**
          * Pneumatics:
          */
@@ -91,9 +90,8 @@ public class Roboholic extends SimpleRobot {
         // This instantiates the NetworkTable, or returns a referance to the existing one.
         variTable = NetworkTable.getTable("variables");
         
-        dashboard.addDouble(jsLeftCal);
-        dashboard.addDouble(jsRightCal);
         
+     
     }
     
     /**
@@ -116,7 +114,7 @@ public class Roboholic extends SimpleRobot {
      */
     public void operatorControl() {
         
-        DEADBAND = variTable.getDouble("DEADBAND", .2);
+        DEADBAND = variTable.getNumber("DEADBAND", .2);
         invertLeft = variTable.getBoolean("invertLeft", invertLeft);
         invertRight = variTable.getBoolean("invertRight", invertRight);
         // If a motor runs backward, toggle its boolean value
@@ -169,5 +167,8 @@ public class Roboholic extends SimpleRobot {
     
     public void test() {
     
+        
+        
+        
     }
 }
