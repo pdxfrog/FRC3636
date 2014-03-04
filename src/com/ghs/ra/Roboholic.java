@@ -10,10 +10,13 @@ package com.ghs.ra;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Dashboard;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SimpleRobot;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.buttons.Button;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
@@ -65,7 +68,7 @@ public class Roboholic extends SimpleRobot {
         /**
          * This allow the update of variables without a reboot!
          */
-        NetworkTable variTable;
+        boolean compOn;
         
        
         /**
@@ -78,7 +81,19 @@ public class Roboholic extends SimpleRobot {
         Solenoid shootersolenoid = new Solenoid(1,3);
         
         boolean pistonState;
-        
+        /**
+         * Autonomous Control Tools:
+         */
+        Timer autoTimer = new Timer();
+        double autoSpeed;
+        double autoTime;
+        double autoLeft;
+        double autoRight;
+        Gyro gyro;
+        double autoKp;
+        double autoAngle;
+        boolean autoKpBool;
+        double autoKpInvert;
        
     
     /**
@@ -87,8 +102,7 @@ public class Roboholic extends SimpleRobot {
     public void robotInit(){
 
         compressor.start();
-        // This instantiates the NetworkTable, or returns a referance to the existing one.
-        variTable = NetworkTable.getTable("variables");
+        
         
         
      
@@ -98,8 +112,32 @@ public class Roboholic extends SimpleRobot {
      * This function is called once each time the robot enters autonomous mode.
      */
     public void autonomous() {
+        gyro.reset();
+        autoTimer.reset();
+        autoTimer.start();
+        // These are sliders 3-5 on the DS IO tab, and Digital In 5.
         
-     for (int i = 0; i < 4; i++);
+        autoSpeed = ((DriverStation.getInstance().getAnalogIn(3))/5); // How fast to go during Autonomous
+        autoTime = (DriverStation.getInstance().getAnalogIn(4)); // How long to drive forward during Autonomous
+        autoKp = ((DriverStation.getInstance().getAnalogIn(5))/100);
+        autoKpBool = (DriverStation.getInstance().getDigitalIn(5));
+        if(autoKpBool){
+            autoKpInvert = -1;
+        }
+        if(!autoKpBool){
+            autoKpInvert = 1;
+        }
+        DriverStation.getInstance().setDigitalOut(5, autoKpBool);
+        
+        
+        
+        while(autoTimer.get() < autoTime) {
+            getWatchdog().feed();
+            autoAngle = gyro.getAngle(); // Get the heading.
+            tankDrive.drive(autoSpeed, (-autoAngle*autoKp*autoKpInvert));
+            
+        }
+        tankDrive.drive(0.0, 0.0);
     }
     /**   
     {  tankDrive.tankDrive(0.5,0.0);
@@ -114,9 +152,12 @@ public class Roboholic extends SimpleRobot {
      */
     public void operatorControl() {
         
-        DEADBAND = variTable.getNumber("DEADBAND", .2);
-        invertLeft = variTable.getBoolean("invertLeft", invertLeft);
-        invertRight = variTable.getBoolean("invertRight", invertRight);
+        DEADBAND = .2;
+        // These correspond to button on the operator console.
+        invertLeft = DriverStation.getInstance().getDigitalIn(1);
+        invertRight = DriverStation.getInstance().getDigitalIn(2);
+        
+      
         // If a motor runs backward, toggle its boolean value
         tankDrive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, invertRight); 
         tankDrive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, invertLeft);   
@@ -124,14 +165,16 @@ public class Roboholic extends SimpleRobot {
     
         while (isOperatorControl()){
             getWatchdog().feed();
+            jsLeftCal = ((DriverStation.getInstance().getAnalogIn(1))/5);
+            jsRightCal = ((DriverStation.getInstance().getAnalogIn(2))/5);
    // first JS   
             jsLeftX = (at3Left.getY());
             if ((Math.abs(jsLeftX))<DEADBAND){
                     speedLeft = 0;
                 }
                 else {
-                    speedLeft = (jsLeftX-(Math.abs(jsLeftX)/
-                            jsLeftX*DEADBAND)/(1-DEADBAND));
+                    speedLeft = (jsLeftCal*(jsLeftX-(Math.abs(jsLeftX)/
+                            jsLeftX*DEADBAND)/(1-DEADBAND)));
                 }
    // second JS         
             jsRightX = (at3Right.getY());
@@ -139,8 +182,8 @@ public class Roboholic extends SimpleRobot {
                     speedRight = 0;
                 }
                 else {
-                    speedRight = (jsRightX-(Math.abs(jsRightX)/
-                            jsRightX*DEADBAND)/(1-DEADBAND));
+                    speedRight = (jsRightCal*(jsRightX-(Math.abs(jsRightX)/
+                            jsRightX*DEADBAND)/(1-DEADBAND)));
                 }
             
             tankDrive.tankDrive(speedLeft, speedRight);
@@ -152,9 +195,17 @@ public class Roboholic extends SimpleRobot {
             }
             pistonIn.set(pistonState);
             pistonOut.set(!pistonState);
-            //pistonIn.set(at3Left.getTrigger());
-            //pistonOut.set(!at3Left.getTrigger()); 
+            
             shootersolenoid.set(at3Right.getTrigger());
+            //Compressor control
+             compOn = DriverStation.getInstance().getDigitalIn(3);
+            DriverStation.getInstance().setDigitalOut(3, compOn);
+            if(compOn){
+                compressor.start();
+            }
+            else{
+                compressor.stop();
+            }
         }
         
        
@@ -166,8 +217,17 @@ public class Roboholic extends SimpleRobot {
      */
     
     public void test() {
-    
-        
+        while(isTest()){
+            compOn = DriverStation.getInstance().getDigitalIn(3);
+            DriverStation.getInstance().setDigitalOut(3, compOn);
+            if(compOn){
+                compressor.start();
+            }
+            else{
+                compressor.stop();
+            }
+        }
+  
         
         
     }
