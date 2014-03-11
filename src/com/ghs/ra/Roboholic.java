@@ -41,7 +41,7 @@ public class Roboholic extends SimpleRobot {
          * sidecar on Digital Outputs 1 & 2. The servo power jumper should not be 
          * attached to those outputs.
          **/
-        Victor tankLeft = new Victor(1,1);
+        Victor tankLeft = new Victor(1,3);
         Victor tankRight = new Victor(1,2);
         RobotDrive tankDrive = new RobotDrive(tankLeft, tankRight);
          // The motors can be inverted by changing the value of these booleans in the network table.
@@ -62,7 +62,7 @@ public class Roboholic extends SimpleRobot {
         double speedRight;
         double jsLeftX;
         double jsRightX;
-        double jsLeftCal;
+        double jsCal;
         double jsRightCal;
         
         /**
@@ -77,7 +77,7 @@ public class Roboholic extends SimpleRobot {
         Compressor compressor = new Compressor(1,1);
         Solenoid pistonIn = new Solenoid(1,1);
         Solenoid pistonOut = new Solenoid(1,2);
-        
+        Solenoid vent = new Solenoid(1,4);
         Solenoid shootersolenoid = new Solenoid(1,3);
         
         boolean pistonState;
@@ -90,11 +90,16 @@ public class Roboholic extends SimpleRobot {
         double autoLeft;
         double autoRight;
         Gyro gyro;
+                
         double autoKp;
         double autoAngle;
         boolean autoKpBool;
         double autoKpInvert;
        
+        //buttons
+        boolean leftButtonUp;
+        boolean leftButtonDown;
+        boolean rightButtonVent;
     
     /**
      * This function is called once each time the robot turns on.
@@ -103,7 +108,8 @@ public class Roboholic extends SimpleRobot {
 
         compressor.start();
         
-        
+        pistonIn.set(true);
+        pistonOut.set(false);
         
      
     }
@@ -112,6 +118,7 @@ public class Roboholic extends SimpleRobot {
      * This function is called once each time the robot enters autonomous mode.
      */
     public void autonomous() {
+        gyro = new Gyro(1);
         gyro.reset();
         autoTimer.reset();
         autoTimer.start();
@@ -119,14 +126,14 @@ public class Roboholic extends SimpleRobot {
         
         autoSpeed = ((DriverStation.getInstance().getAnalogIn(3))/5); // How fast to go during Autonomous
         autoTime = (DriverStation.getInstance().getAnalogIn(4)); // How long to drive forward during Autonomous
-        autoKp = ((DriverStation.getInstance().getAnalogIn(5))/100);
-        autoKpBool = (DriverStation.getInstance().getDigitalIn(5));
-        if(autoKpBool){
-            autoKpInvert = -1;
-        }
-        if(!autoKpBool){
-            autoKpInvert = 1;
-        }
+        autoKp = ((DriverStation.getInstance().getAnalogIn(1))/100);
+     //   autoKpBool = (DriverStation.getInstance().getDigitalIn(5));
+      //  if(autoKpBool){
+        //    autoKpInvert = -1;
+      //  }
+      //  if(!autoKpBool){
+        //    autoKpInvert = 1;
+       // }
         DriverStation.getInstance().setDigitalOut(5, autoKpBool);
         
         
@@ -134,7 +141,7 @@ public class Roboholic extends SimpleRobot {
         while(autoTimer.get() < autoTime) {
             getWatchdog().feed();
             autoAngle = gyro.getAngle(); // Get the heading.
-            tankDrive.drive(autoSpeed, (-autoAngle*autoKp*autoKpInvert));
+            tankDrive.drive(autoSpeed, (-autoAngle*autoKp));
             
         }
         tankDrive.drive(0.0, 0.0);
@@ -151,7 +158,7 @@ public class Roboholic extends SimpleRobot {
      * This function is called once each time the robot enters operator control.
      */
     public void operatorControl() {
-        
+        getWatchdog().setExpiration(.2);
         DEADBAND = .2;
         // These correspond to button on the operator console.
         invertLeft = DriverStation.getInstance().getDigitalIn(1);
@@ -161,19 +168,20 @@ public class Roboholic extends SimpleRobot {
         // If a motor runs backward, toggle its boolean value
         tankDrive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, invertRight); 
         tankDrive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, invertLeft);   
-        
+        tankDrive.setInvertedMotor(RobotDrive.MotorType.kRearRight, invertRight); 
+        tankDrive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, invertLeft);
     
         while (isOperatorControl()){
             getWatchdog().feed();
-            jsLeftCal = ((DriverStation.getInstance().getAnalogIn(1))/5);
-            jsRightCal = ((DriverStation.getInstance().getAnalogIn(2))/5);
+            jsCal = ((DriverStation.getInstance().getAnalogIn(1))/5);
+            //jsRightCal = ((DriverStation.getInstance().getAnalogIn(2))/5);
    // first JS   
             jsLeftX = (at3Left.getY());
             if ((Math.abs(jsLeftX))<DEADBAND){
                     speedLeft = 0;
                 }
                 else {
-                    speedLeft = (jsLeftCal*(jsLeftX-(Math.abs(jsLeftX)/
+                    speedLeft = (jsCal*(jsLeftX-(Math.abs(jsLeftX)/
                             jsLeftX*DEADBAND)/(1-DEADBAND)));
                 }
    // second JS         
@@ -182,15 +190,17 @@ public class Roboholic extends SimpleRobot {
                     speedRight = 0;
                 }
                 else {
-                    speedRight = (jsRightCal*(jsRightX-(Math.abs(jsRightX)/
+                    speedRight = (jsCal*(jsRightX-(Math.abs(jsRightX)/
                             jsRightX*DEADBAND)/(1-DEADBAND)));
                 }
             
             tankDrive.tankDrive(speedLeft, speedRight);
-            if (at3Left.getTwist()==1){
+            leftButtonUp = at3Left.getRawButton(3);
+            leftButtonDown = at3Left.getRawButton(2);
+            if (leftButtonDown){
                 pistonState = true;
             }
-            if (at3Left.getTwist()==(-1)) {
+            if (leftButtonUp) {
                 pistonState = false;
             }
             pistonIn.set(pistonState);
@@ -206,6 +216,8 @@ public class Roboholic extends SimpleRobot {
             else{
                 compressor.stop();
             }
+            rightButtonVent = at3Left.getRawButton(11);
+            vent.set(rightButtonVent);
         }
         
        
