@@ -58,12 +58,14 @@ public class Roboholic extends SimpleRobot {
          * These variables are used for the deadband implementation.
          **/
         double DEADBAND;
-        double speedLeft;
-        double speedRight;
-        double jsLeftX;
-        double jsRightX;
+        double speedY;
+        double speedTwist;
+        double jsY;
+        double jsTwist;
         double jsCal;
         double jsRightCal;
+        double speedLeft;
+        double speedRight;
         
         /**
          * This allow the update of variables without a reboot!
@@ -127,13 +129,7 @@ public class Roboholic extends SimpleRobot {
         autoSpeed = ((DriverStation.getInstance().getAnalogIn(3))/5); // How fast to go during Autonomous
         autoTime = (DriverStation.getInstance().getAnalogIn(4)); // How long to drive forward during Autonomous
         autoKp = ((DriverStation.getInstance().getAnalogIn(1))/100);
-     //   autoKpBool = (DriverStation.getInstance().getDigitalIn(5));
-      //  if(autoKpBool){
-        //    autoKpInvert = -1;
-      //  }
-      //  if(!autoKpBool){
-        //    autoKpInvert = 1;
-       // }
+    
         DriverStation.getInstance().setDigitalOut(5, autoKpBool);
         
         
@@ -174,27 +170,39 @@ public class Roboholic extends SimpleRobot {
         while (isOperatorControl()){
             getWatchdog().feed();
             jsCal = ((DriverStation.getInstance().getAnalogIn(1))/5);
-            //jsRightCal = ((DriverStation.getInstance().getAnalogIn(2))/5);
+      
    // first JS   
-            jsLeftX = (at3Left.getY());
-            if ((Math.abs(jsLeftX))<DEADBAND){
-                    speedLeft = 0;
+            jsY = (at3Right.getY());
+            if ((Math.abs(jsY))<DEADBAND){
+                    speedY = 0;
                 }
                 else {
-                    speedLeft = (jsCal*(jsLeftX-(Math.abs(jsLeftX)/
-                            jsLeftX*DEADBAND)/(1-DEADBAND)));
+                    speedY = (jsCal*(jsY-(Math.abs(jsY)/
+                            jsY*DEADBAND)/(1-DEADBAND)));
                 }
    // second JS         
-            jsRightX = (at3Right.getY());
-            if ((Math.abs(jsRightX))<DEADBAND){
-                    speedRight = 0;
+            jsTwist = (at3Right.getTwist());
+            if ((Math.abs(jsTwist))<DEADBAND){
+                    speedTwist = 0;
                 }
                 else {
-                    speedRight = (jsCal*(jsRightX-(Math.abs(jsRightX)/
-                            jsRightX*DEADBAND)/(1-DEADBAND)));
+                    speedTwist = (jsCal*(jsTwist-(Math.abs(jsTwist)/
+                            jsTwist*DEADBAND)/(1-DEADBAND)));
                 }
+            speedLeft = (speedY - speedTwist);
+            speedRight = (speedY + speedTwist);
+            if (Math.abs(speedLeft)>1){
+                speedLeft = (Math.abs(speedLeft)/speedLeft);
+                speedRight = (Math.abs(speedLeft)/speedRight);
+            }
+            if (Math.abs(speedRight)>1){
+                speedRight = (Math.abs(speedRight)/speedRight);
+                speedLeft = (Math.abs(speedRight)/speedLeft);
+            }
             
             tankDrive.tankDrive(speedLeft, speedRight);
+            
+            // These buttons control the fork
             leftButtonUp = at3Left.getRawButton(3);
             leftButtonDown = at3Left.getRawButton(2);
             if (leftButtonDown){
