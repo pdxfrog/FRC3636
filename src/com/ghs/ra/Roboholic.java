@@ -9,7 +9,6 @@ package com.ghs.ra;
 
 
 import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.Dashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Joystick;
@@ -18,9 +17,6 @@ import edu.wpi.first.wpilibj.SimpleRobot;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
-import edu.wpi.first.wpilibj.buttons.Button;
-import edu.wpi.first.wpilibj.networktables.NetworkTable;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -52,7 +48,7 @@ public class Roboholic extends SimpleRobot {
 //        otherwise the robot can behave erratically
         Joystick at3Left = new Joystick(1);
         Joystick at3Right = new Joystick(2);
-        Joystick sideWinder = new Joystick(3);
+        
         
         /**
          * These variables are used for the deadband implementation.
@@ -80,13 +76,13 @@ public class Roboholic extends SimpleRobot {
         Solenoid pistonIn = new Solenoid(1,1);
         Solenoid pistonOut = new Solenoid(1,2);
         Solenoid vent = new Solenoid(1,4);
-        Solenoid shootersolenoid = new Solenoid(1,3);
+        Solenoid shooterSolenoid = new Solenoid(1,3);
         
         boolean pistonState;
         /**
          * Autonomous Control Tools:
          */
-        Timer autoTimer = new Timer();
+        Timer autoTimer = new Timer(); // Controls how long the robot moves forward
         double autoSpeed;
         double autoTime;
         double autoLeft;
@@ -177,8 +173,10 @@ public class Roboholic extends SimpleRobot {
                     speedY = 0;
                 }
                 else {
-                    speedY = (jsCal*(jsY-(Math.abs(jsY)/
-                            jsY*DEADBAND)/(1-DEADBAND)));
+                    speedY = (jsCal*((Math.abs(jsY)*(Math.abs(jsY)-DEADBAND))/
+                            (jsY*(1-DEADBAND))));
+                    //Above is the equation I came up with. I don't think the
+                    //one below works. -Ian
                 }
    // second JS         
             jsTwist = (at3Right.getTwist());
@@ -193,11 +191,12 @@ public class Roboholic extends SimpleRobot {
             speedRight = (speedY + speedTwist);
             if (Math.abs(speedLeft)>1){
                 speedLeft = (Math.abs(speedLeft)/speedLeft);
-                speedRight = (Math.abs(speedLeft)/speedRight);
+                speedRight = speedRight/(Math.abs(speedLeft));
             }
             if (Math.abs(speedRight)>1){
                 speedRight = (Math.abs(speedRight)/speedRight);
-                speedLeft = (Math.abs(speedRight)/speedLeft);
+                speedLeft = speedLeft/(Math.abs(speedRight)); //Thank you Ian
+                                                 //Bow down and worship me! -Ian
             }
             
             tankDrive.tankDrive(speedLeft, speedRight);
@@ -214,7 +213,7 @@ public class Roboholic extends SimpleRobot {
             pistonIn.set(pistonState);
             pistonOut.set(!pistonState);
             
-            shootersolenoid.set(at3Right.getTrigger());
+            shooterSolenoid.set(at3Right.getTrigger());
             //Compressor control
              compOn = DriverStation.getInstance().getDigitalIn(3);
             DriverStation.getInstance().setDigitalOut(3, compOn);
