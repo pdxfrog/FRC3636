@@ -37,9 +37,11 @@ public class Roboholic extends SimpleRobot {
          * sidecar on Digital Outputs 1 & 2. The servo power jumper should not be 
          * attached to those outputs.
          **/
-        Victor tankLeft = new Victor(1,3);
-        Victor tankRight = new Victor(1,2);
-        RobotDrive tankDrive = new RobotDrive(tankLeft, tankRight);
+        Victor tankLeftFront = new Victor(1,1);
+        Victor tankRightFront = new Victor(1,2);
+        Victor tankLeftRear = new Victor(1,5);
+        Victor tankRightRear = new Victor(1,4);
+        RobotDrive tankDrive = new RobotDrive(tankLeftFront, tankLeftRear, tankRightFront, tankRightRear);
          // The motors can be inverted by changing the value of these booleans in the network table.
         boolean invertLeft;
         boolean invertRight;
@@ -47,7 +49,7 @@ public class Roboholic extends SimpleRobot {
 //        Be very careful to plug Joysticks in in the correct order,
 //        otherwise the robot can behave erratically
         Joystick at3Left = new Joystick(1);
-        Joystick at3Right = new Joystick(2);
+        Joystick triAxis = new Joystick(2);
         
         
         /**
@@ -168,7 +170,7 @@ public class Roboholic extends SimpleRobot {
             jsCal = ((DriverStation.getInstance().getAnalogIn(1))/5);
       
    // first JS   
-            jsY = (at3Right.getY());
+            jsY = (triAxis.getY());
             if ((Math.abs(jsY))<DEADBAND){
                     speedY = 0;
                 }
@@ -179,7 +181,7 @@ public class Roboholic extends SimpleRobot {
                     //one below works. -Ian
                 }
    // second JS         
-            jsTwist = (at3Right.getTwist());
+            jsTwist = (triAxis.getTwist());
             if ((Math.abs(jsTwist))<DEADBAND){
                     speedTwist = 0;
                 }
@@ -213,7 +215,7 @@ public class Roboholic extends SimpleRobot {
             pistonIn.set(pistonState);
             pistonOut.set(!pistonState);
             
-            shooterSolenoid.set(at3Right.getTrigger());
+            shooterSolenoid.set(triAxis.getTrigger());
             //Compressor control
              compOn = DriverStation.getInstance().getDigitalIn(3);
             DriverStation.getInstance().setDigitalOut(3, compOn);
