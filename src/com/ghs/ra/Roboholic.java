@@ -6,13 +6,11 @@
 /*----------------------------------------------------------------------------*/
 package com.ghs.ra;
 
-import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SimpleRobot;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
@@ -80,7 +78,7 @@ public class Roboholic extends SimpleRobot {
     double autoKpInvert;
 
     //Disable Stuff
-    boolean killLeft, killRight;
+
     boolean enableMotors;
 
     /**
@@ -147,16 +145,15 @@ public class Roboholic extends SimpleRobot {
 
         while (isOperatorControl()) {
             getWatchdog().feed();
-            jsTwistCal = ((at3Left.getRawAxis(3) + 1) / 2);
-            jsYCal = ((at3Left.getRawAxis(3) + 1) / 2);
-            if (at3Left.getRawButton(6)||at3Left.getRawButton(7)||
-                    at3Left.getRawButton(10)||at3Left.getRawButton(11)) {
+            jsTwistCal = ((at3Left.getTwist() + 1) / 2);
+            jsYCal = ((at3Left.getTwist() + 1) / 2);
+            if (at3Left.getRawButton(6)||at3Left.getRawButton(7)||at3Left.getRawButton(10)
+                    ||at3Left.getRawButton(11)) {
                 enableMotors = false;
             }
-            if (at3Left.getRawButton(8)&&at3Left.getRawButton(9)) {
+            if (at3Left.getRawButton(8) && at3Left.getRawButton(9)) {
                 enableMotors = true;
             }
-           
 
             speedY = scaleToDeadband(triAxis, 2, DEADBAND, jsYCal);
             speedTwist = scaleToDeadband(triAxis, 3, DEADBAND, jsTwistCal);
@@ -188,30 +185,19 @@ public class Roboholic extends SimpleRobot {
             this.main = main;
         }
 
-      /**  public void setLeftRightMotorOutputs(double leftOutput, double rightOutput) {
-            try {
-                if (main.killLeft) {
-                    m_frontLeftMotor = null;
-                    main.tankLeftFront.disable();
-                } else {
-                    m_frontLeftMotor = main.tankLeftFront;
-                }
-
-                if (main.killRight) {
-                    m_frontRightMotor = null;
-                    main.tankRightFront.disable();
-                } else {
-                    m_frontRightMotor = main.tankRightFront;
-                }
-            } catch (Exception e) {
-                if (!printed) {
-                    e.printStackTrace();
-                    printed = true;
-                }
-            }
-            super.setLeftRightMotorOutputs(leftOutput, rightOutput);
-        }**/
-
+        /**
+         * public void setLeftRightMotorOutputs(double leftOutput, double
+         * rightOutput) { try { if (main.killLeft) { m_frontLeftMotor = null;
+         * main.tankLeftFront.disable(); } else { m_frontLeftMotor =
+         * main.tankLeftFront; }
+         *
+         * if (main.killRight) { m_frontRightMotor = null;
+         * main.tankRightFront.disable(); } else { m_frontRightMotor =
+         * main.tankRightFront; } } catch (Exception e) { if (!printed) {
+         * e.printStackTrace(); printed = true; } }
+         * super.setLeftRightMotorOutputs(leftOutput, rightOutput);
+        }*
+         */
         public void triAxisArcade(double speedValue, double rotateValue, boolean enable) {
 
             double speedLeft;
@@ -234,7 +220,7 @@ public class Roboholic extends SimpleRobot {
                 speedLeft = speedRight = 0;
             }
 
-            super.tankDrive(speedLeft, speedRight);
+            tankDrive(speedLeft, speedRight);
         }
 
     }
@@ -263,26 +249,6 @@ public class Roboholic extends SimpleRobot {
         }
         return returnValue;
 
-    }
-
-    public double[] combineForwardTwist(double forwardSpeed, double twistSpeed, double maxValue) {
-
-        double[] returnValue = new double[2];
-        speedLeft = (forwardSpeed - twistSpeed);
-        speedRight = (forwardSpeed + twistSpeed);
-        if (Math.abs(speedLeft) > 1) {
-            speedLeft = (Math.abs(speedLeft) / speedLeft);
-            speedRight = speedRight / (Math.abs(speedLeft));
-        }
-        if (Math.abs(speedRight) > 1) {
-            speedRight = (Math.abs(speedRight) / speedRight);
-            speedLeft = speedLeft / (Math.abs(speedRight)); //Thank you Ian
-            //Bow down and worship me! -Ian
-        }
-        returnValue[0] = speedLeft;
-        returnValue[1] = speedRight;
-
-        return returnValue;
     }
 
 }
