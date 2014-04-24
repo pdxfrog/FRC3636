@@ -78,7 +78,6 @@ public class Roboholic extends SimpleRobot {
     double autoKpInvert;
 
     //Disable Stuff
-
     boolean enableMotors;
 
     /**
@@ -86,13 +85,9 @@ public class Roboholic extends SimpleRobot {
      */
     public void robotInit() {
         tankLeftFront = new Victor(1, 1);
-        // tankLeftFront.startLiveWindowMode();
         tankRightFront = new Victor(1, 3);
-        // tankRightFront.startLiveWindowMode();
         tankLeftRear = new Victor(1, 2);
-        // tankLeftRear.startLiveWindowMode();
         tankRightRear = new Victor(1, 4);
-        // tankRightRear.startLiveWindowMode();
         tankDrive = new CustomDrive(this, tankLeftFront, tankLeftRear, tankRightFront, tankRightRear);
 
     }
@@ -147,8 +142,8 @@ public class Roboholic extends SimpleRobot {
             getWatchdog().feed();
             jsTwistCal = ((at3Left.getTwist() + 1) / 2);
             jsYCal = ((at3Left.getTwist() + 1) / 2);
-            if (at3Left.getRawButton(6)||at3Left.getRawButton(7)||at3Left.getRawButton(10)
-                    ||at3Left.getRawButton(11)) {
+            if (at3Left.getRawButton(6) || at3Left.getRawButton(7) || at3Left.getRawButton(10)
+                    || at3Left.getRawButton(11)) {
                 enableMotors = false;
             }
             if (at3Left.getRawButton(8) && at3Left.getRawButton(9)) {
@@ -195,8 +190,7 @@ public class Roboholic extends SimpleRobot {
          * main.tankRightFront.disable(); } else { m_frontRightMotor =
          * main.tankRightFront; } } catch (Exception e) { if (!printed) {
          * e.printStackTrace(); printed = true; } }
-         * super.setLeftRightMotorOutputs(leftOutput, rightOutput);
-        }*
+         * super.setLeftRightMotorOutputs(leftOutput, rightOutput); }*
          */
         public void triAxisArcade(double speedValue, double rotateValue, boolean enable) {
 
